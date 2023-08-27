@@ -47,8 +47,6 @@ function ChessBoard() {
   const [futureSquare, setFutureSquare] = useState("");
   const [couldBePromoted, setCouldBePromoted] = useState(false);
   const [promotionType, setPromotionType] = useState("");
-  console.log(currentSquare, "currentSquare");
-  console.log(futureSquare, "futureSquare");
 
   useEffect(() => {
     if (promotionType.length !== 0) {
@@ -82,7 +80,6 @@ function ChessBoard() {
       }
 
       if (kingCheckResult.isThereCheckMate === true) {
-        //to access the updated isCheckMate state immediately
         let updatedIsCheckMate = {};
         if (currentPiece?.color === "white") {
           updatedIsCheckMate = { ...isCheckMate, black: true };
@@ -317,8 +314,6 @@ function ChessBoard() {
     }
   }
 
-  console.log(highlightedSquare, "highlightedSquare");
-
   function firstSelectedPiece(col, row, square) {
     firstSelected.current = col + row;
     if (pieces[col + row] === undefined) {
@@ -360,18 +355,17 @@ function ChessBoard() {
     }
   }
 
-  function handleMove(square, col, row) {
+  const handleMove = (square, col, row) => {
     if (selectedPiece) {
       secondSelected = col + row;
       castling();
-  
       if (pieces[square]?.color === pieces[selectedPiece]?.color) {
         firstSelectedPiece(col, row, square);
         return setAllowedMoves(
           checkMovesForSinglePiece(pieces[col + row], col, row, pieces)
         );
       }
-  
+
       if (
         checkIfmoveAllowed(
           col,
@@ -389,11 +383,11 @@ function ChessBoard() {
           white: currentPiece.color === "white" ? false : prev.white,
           black: currentPiece.color === "black" ? false : prev.black,
         }));
-  
+
         if (pieces[selectedPiece]?.type === "pawn") {
           pieces[selectedPiece].basePostion = false;
         }
-  
+
         const updatedPieces = Object.keys(pieces).reduce((result, key) => {
           if (key === selectedPiece) {
             pieces[square] !== undefined && piecesTrash.push(pieces[square]);
@@ -411,13 +405,11 @@ function ChessBoard() {
         setCheckMateAllowedMoves({});
         setHighlightedSquare("");
         setFutureSquare(square);
-        setHighlightedSquare(null);
       }
     } else {
       firstSelectedPiece(col, row, square);
     }
-  }
-  console.log(highlightedSquare,"highlightedSquare")
+  };
 
   return (
     <>
@@ -464,13 +456,18 @@ function ChessBoard() {
                 const isHighlighted =
                   (square === highlightedSquare ||
                     allowedMoves.includes(square)) &&
-                  (square !== futureSquare || square === currentSquare);
+                  (square !== futureSquare ||
+                    square === currentSquare ||
+                    square !== currentSquare);
+
                 return (
                   <div
                     key={square}
                     id={square}
                     className={`square ${isBlackSquare ? "black" : "white"} ${
-                      isHighlighted ? "highlighted" : null 
+                      isHighlighted !== false && selectedPiece !== null
+                        ? "highlighted"
+                        : ""
                     }`}
                     onClick={() => handleMove(square, col, row)}
                   >
