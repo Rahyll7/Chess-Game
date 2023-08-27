@@ -1,4 +1,3 @@
-//style sheet
 import "./style.css";
 import { useEffect, useRef, useState } from "react";
 import Piece from "../pieces/piece";
@@ -48,6 +47,8 @@ function ChessBoard() {
   const [futureSquare, setFutureSquare] = useState("");
   const [couldBePromoted, setCouldBePromoted] = useState(false);
   const [promotionType, setPromotionType] = useState("");
+  console.log(currentSquare, "currentSquare");
+  console.log(futureSquare, "futureSquare");
 
   useEffect(() => {
     if (promotionType.length !== 0) {
@@ -103,7 +104,6 @@ function ChessBoard() {
     }
   }, [pieces]);
 
-  // this useEffect to handle the end game
   useEffect(() => {
     if (isCheckMate.black === true || isCheckMate.white === true) {
       let { king, ...defendersAndEaters } = checkMateAllowedMoves;
@@ -112,7 +112,6 @@ function ChessBoard() {
         (king?.length === 0 && Object.keys(defendersAndEaters)?.length === 0) ||
         checkMateAllowedMoves?.length === 0
       ) {
-        // here we need to show the end game component !!
         return setIsGameOver(true);
       }
     }
@@ -154,7 +153,6 @@ function ChessBoard() {
   }
 
   const getPieceAt = (square) => {
-    // Return the piece object for the given square to show it on the square
     return pieces[square];
   };
 
@@ -216,7 +214,6 @@ function ChessBoard() {
     }
 
     if (foundInEnemyAllowedMoves || isTherePiecesBetween) {
-      //return false if the square founded in the enemy pieces allowed moves
       return false;
     } else if (!foundInEnemyAllowedMoves && !isTherePiecesBetween) {
       return true;
@@ -226,8 +223,6 @@ function ChessBoard() {
   }
 
   function castling() {
-    // ====================================        HANDLE SHORT CASTLING LOGIC   =============================================
-
     if (
       (pieces[firstSelected.current]?.type === "king" &&
       pieces[secondSelected]?.type === "rook" &&
@@ -276,8 +271,6 @@ function ChessBoard() {
       }
     }
 
-    // ====================================        HANDLE LONG CASTLING LOGIC   =============================================
-
     if (
       (pieces[firstSelected.current]?.type === "rook" &&
       pieces[secondSelected]?.type === "king" &&
@@ -324,9 +317,10 @@ function ChessBoard() {
     }
   }
 
+  console.log(highlightedSquare, "highlightedSquare");
+
   function firstSelectedPiece(col, row, square) {
     firstSelected.current = col + row;
-    // to handle the undefined selsected piece
     if (pieces[col + row] === undefined) {
       return;
     }
@@ -367,102 +361,63 @@ function ChessBoard() {
   }
 
   function handleMove(square, col, row) {
-  if (selectedPiece) {
-    secondSelected = col + row;
-    castling();
-
-    if (pieces[square]?.color === pieces[selectedPiece]?.color) {
-      firstSelectedPiece(col, row, square);
-      return setAllowedMoves(
-        checkMovesForSinglePiece(pieces[col + row], col, row, pieces)
-      );
-    }
-
-    if (
-      checkIfmoveAllowed(
-        col,
-        row,
-        allowedMoves,
-        isCheckMate,
-        checkMateAllowedMoves,
-        currentPiece,
-        currentSquare,
-        playerTurn,
-        pieces
-      )
-    ) {
-      setIsCheckMate((prev) => ({
-        white: currentPiece.color === "white" ? false : prev.white,
-        black: currentPiece.color === "black" ? false : prev.black,
-      }));
-
-      if (pieces[selectedPiece]?.type === "pawn") {
-        pieces[selectedPiece].basePostion = false;
+    if (selectedPiece) {
+      secondSelected = col + row;
+      castling();
+  
+      if (pieces[square]?.color === pieces[selectedPiece]?.color) {
+        firstSelectedPiece(col, row, square);
+        return setAllowedMoves(
+          checkMovesForSinglePiece(pieces[col + row], col, row, pieces)
+        );
       }
-
-      const updatedPieces = Object.keys(pieces).reduce((result, key) => {
-        if (key === selectedPiece) {
-          pieces[square] !== undefined && piecesTrash.push(pieces[square]);
-          setAttackerCurrentSquare(square);
-          pieceNextStepAllowedMoves(col, row, pieces);
-          result[square] = pieces[selectedPiece];
-        } else if (key !== square) {
-          result[key] = pieces[key];
+  
+      if (
+        checkIfmoveAllowed(
+          col,
+          row,
+          allowedMoves,
+          isCheckMate,
+          checkMateAllowedMoves,
+          currentPiece,
+          currentSquare,
+          playerTurn,
+          pieces
+        )
+      ) {
+        setIsCheckMate((prev) => ({
+          white: currentPiece.color === "white" ? false : prev.white,
+          black: currentPiece.color === "black" ? false : prev.black,
+        }));
+  
+        if (pieces[selectedPiece]?.type === "pawn") {
+          pieces[selectedPiece].basePostion = false;
         }
-        return result;
-      }, {});
-      dispatch(UpdatePieces(updatedPieces));
-      setPlayerTurn(!playerTurn);
-      setSelectedPiece(null);
-      setCheckMateAllowedMoves({});
-      setHighlightedSquare(""); // Clear highlighted square here
-      setFutureSquare(square);
+  
+        const updatedPieces = Object.keys(pieces).reduce((result, key) => {
+          if (key === selectedPiece) {
+            pieces[square] !== undefined && piecesTrash.push(pieces[square]);
+            setAttackerCurrentSquare(square);
+            pieceNextStepAllowedMoves(col, row, pieces);
+            result[square] = pieces[selectedPiece];
+          } else if (key !== square) {
+            result[key] = pieces[key];
+          }
+          return result;
+        }, {});
+        dispatch(UpdatePieces(updatedPieces));
+        setPlayerTurn(!playerTurn);
+        setSelectedPiece(null);
+        setCheckMateAllowedMoves({});
+        setHighlightedSquare("");
+        setFutureSquare(square);
+        setHighlightedSquare(null);
+      }
+    } else {
+      firstSelectedPiece(col, row, square);
     }
-  } else {
-    firstSelectedPiece(col, row, square);
   }
-}
-
-
-  // return (
-  //   <>
-  //  {isGameOver && <div className='gameOver'><p className='title'>The game is over !!</p><br /><p className='winner'>{isCheckMate.black === true? 'White' : 'Black'} Won</p></div>}
-  //  {couldBePromoted  && <Promotion couldBePromoted={setCouldBePromoted} promotionType={setPromotionType} pieceColor={color}/> }
-
-  //   { piecesTrash.length !== 0 &&  <div className='Trash'>
-  //     {piecesTrash?.map((piece) => {
-  //       if(piece?.color === 'white'){
-  //         return <img src={`images/${piece?.color}/${piece?.type}.svg`} className={'trashPieces'} alt='type'/>
-  //       }
-  //     })}
-  //   </div>}
-
-  //   <div className="board">
-  //     {rows.map((row) => {
-  //       return cols.map((col) => {
-  //         const square = col + row;
-  //         const isBlackSquare =
-  //           (cols.indexOf(col) + rows.indexOf(row)) % 2 === 1;
-  //         const piece = getPieceAt(square);
-
-  //         return (
-  //           <div key={square} id={square} className={`square ${isBlackSquare ? 'black' : 'white'}`} onClick={() => handleMove(square, col, row)}>
-  //             {piece && (<Piece tabIndex="-1" color={piece?.color} type={piece.type} /> )}
-  //           </div>
-  //         );
-  //       });
-  //     })}
-  //   </div>
-
-  //  { piecesTrash.length !== 0 && <div className='Trash'>
-  //   {piecesTrash?.map((piece) => {
-  //       if(piece?.color === 'black'){
-  //         return <img src={`images/${piece?.color}/${piece?.type}.svg`} className={'trashPieces'} alt='type'/>
-  //       }
-  //     })}
-  //   </div>}
-  //   </>
-  // );
+  console.log(highlightedSquare,"highlightedSquare")
 
   return (
     <>
@@ -507,13 +462,15 @@ function ChessBoard() {
                   (cols.indexOf(col) + rows.indexOf(row)) % 2 === 1;
                 const piece = getPieceAt(square);
                 const isHighlighted =
-                  square === highlightedSquare || allowedMoves.includes(square);
+                  (square === highlightedSquare ||
+                    allowedMoves.includes(square)) &&
+                  (square !== futureSquare || square === currentSquare);
                 return (
                   <div
                     key={square}
                     id={square}
                     className={`square ${isBlackSquare ? "black" : "white"} ${
-                      isHighlighted ? "highlighted" : ""
+                      isHighlighted ? "highlighted" : null 
                     }`}
                     onClick={() => handleMove(square, col, row)}
                   >
